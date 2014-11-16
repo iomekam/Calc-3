@@ -1,6 +1,12 @@
 from numpy import matrix
-from numpy import linalg
+import math
 import numpy
+
+### Tutorials I used to solidfy my knowledge on row-e: http://math.bu.edu/people/szczesny/Teaching/242S13/sec1_2ov.pdf
+## Givens rotation help:
+## http://www.math.usm.edu/lambers/mat610/sum10/lecture9.pdf
+## http://math.stackexchange.com/questions/563285/qr-factorisation-using-givens-rotation-find-upper-triangular-matrix-using-given
+## http://www.cs.rpi.edu/~flaherje/pdf/lin13.pdf
 
 def createVector(*nums):
     aTup = ()
@@ -46,7 +52,10 @@ def guassNewton(f):
     J = matrix(J)
 
     for i in range(iterations):
-        B = B - (inverse((J.T*J)) * J.T) * matrix(r)
+        #B = B - (inverse((J.T*J)) * J.T) * matrix(r)
+        Q,R = qr_fact_givens(J)
+        print(R.shape)
+        B = B - (R.I*Q.T)*matrix(r)
         r = []
 
         for pair in floatingPair:
@@ -138,6 +147,69 @@ def reducedRowEchelon(aMatrix):
                 newArray[j] = (matrix(newArray[j]) - matrix(newArray[i]) * newArray[j][i]).tolist()[0]
 
     return(matrix(newArray))
+
+def qr_fact_givens(aMatrix):
+    array = numpy.array(aMatrix)
+    currentRow = aMatrix.shape[0] - 2
+    currentColumn = 0
+    rotations = []
+
+    for i in range(aMatrix.shape[1]):
+        rotation = []
+        
+        for j in range(i, aMatrix.shape[0] - 1):
+            alpha = array[currentRow][currentColumn].item()
+            beta = array[currentRow + 1][currentColumn].item()
+
+            #c = alpha/r
+            #r = square root (alpha^2 + beta^2)
+            #s = -beta/r
+
+            r = math.hypot(alpha,beta) #to prevent over/under flow
+            #r = round(r, 4)
+            
+            c = alpha/r
+            s = -beta/r
+
+            identity = numpy.identity(aMatrix.shape[0]).tolist()
+            identity[currentRow][currentRow] = c
+            identity[currentRow+1][currentRow+1] = c
+            identity[currentRow+1][currentRow] = -s
+            identity[currentRow][currentRow+1] = s
+
+            rotation.append(matrix(identity))
+
+            currentRow = currentRow - 1
+
+            aMatrix = matrix(identity).T * aMatrix
+            array = numpy.array(aMatrix)
+
+                
+        currentRow = aMatrix.shape[0] - 2
+        currentColumn = currentColumn + 1
+        rotations.append(rotation)
+        rotation = []
+    
+
+    #fix issue where numpy treats o as 2e-17 ( a really low number close to zero)
+    R = []
+    for i in aMatrix.tolist():
+        for j in i:
+            R.append(round(j, 6))
+
+    Q = numpy.identity(aMatrix.shape[0])
+    for i in rotations:
+        for j in i:
+            Q = Q * j
+
+    return Q, matrix(R).reshape(aMatrix.shape)
+
+def a():
+    a = "0.8147 0.0975 0.1576 0.9058 0.2785 0.9706 0.1270 0.5469 0.9572 0.9134 0.9575 0.4854 0.6324 0.9649 0.8003"
+    aList = []
+    for i in a.split():
+        aList.append(round(float(i), 4))
+    return matrix(aList).reshape(5,3)
 
         
     

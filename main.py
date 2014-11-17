@@ -7,11 +7,9 @@ import numpy
 ## http://www.math.usm.edu/lambers/mat610/sum10/lecture9.pdf
 ## http://math.stackexchange.com/questions/563285/qr-factorisation-using-givens-rotation-find-upper-triangular-matrix-using-given
 ## http://www.cs.rpi.edu/~flaherje/pdf/lin13.pdf
-
-def createVector(*nums):
-    aTup = ()
-    for i in nums:
-        aTup = aTup + (i,)
+## Householder help:
+## http://onlinelibrary.wiley.com/doi/10.1002/9780470316757.app2/pdf
+## http://planetmath.org/householdertransformation
 
 def gn_qua():
     return guassNewton(quadratic)
@@ -54,7 +52,6 @@ def guassNewton(f):
     for i in range(iterations):
         #B = B - (inverse((J.T*J)) * J.T) * matrix(r)
         Q,R = qr_fact_givens(J)
-        print(R.shape)
         B = B - (R.I*Q.T)*matrix(r)
         r = []
 
@@ -121,9 +118,12 @@ def getSubMatrix(aMatrix, column):
     return matrix(aList).reshape((aMatrix.shape[0] - 1, aMatrix.shape[0] - 1))
 
 def inverse(matrix):
-    return reducedRowEchelon(matrix)[:,3:]
+    if(matrix.shape[0] == matrix.shape[1]):
+        return gaussJordan(matrix)[:,3:]
+    else:
+        return matrix.T * gaussJordan(matrix*matrix.T)[:,3:]
 
-def reducedRowEchelon(aMatrix):
+def gaussJordan(aMatrix):
     array = numpy.array(aMatrix)
     identity = numpy.identity(aMatrix.shape[0])
     
@@ -203,6 +203,50 @@ def qr_fact_givens(aMatrix):
             Q = Q * j
 
     return Q, matrix(R).reshape(aMatrix.shape)
+
+def qr_fact_househ(aMatrix):
+    array = numpy.array(aMatrix).tolist()
+    rotations = []
+    X = aMatrix
+
+    for i in range(aMatrix.shape[1]):
+        y = numpy.array(X.T).tolist()[i]
+        for j in range(len(y)):
+            if(j < i):
+                y[j] = 0
+        y = matrix(y)
+        
+        e = matrix(numpy.identity(aMatrix.shape[0])[i].tolist())
+        u = (y - magnitude(y) * e).T / magnitude((y - magnitude(y) * e))
+        H = numpy.identity(aMatrix.shape[0]) - 2 * u * u.T
+
+        rotations.append(H)
+        H = numpy.identity(H.shape[1])
+
+        for i in rotations[::-1]:
+            H = H * i
+        X = H * aMatrix
+
+    #fix issue where numpy treats o as 2e-17 ( a really low number close to zero)
+    R = []
+    for i in X.tolist():
+        for j in i:
+            R.append(round(j, 6))
+
+    Q = numpy.identity(X.shape[0])
+
+    for i in rotations:
+        print(i)
+        Q = Q * i.T
+        
+    return Q, matrix(R).reshape(X.shape)
+        
+def magnitude(aMatrix): # 1x3 matrix
+    magnitude = 0
+    for i in numpy.array(aMatrix)[0].tolist():
+        magnitude = magnitude + float(i) ** 2
+    return math.sqrt(magnitude)
+        
 
 def a():
     a = "0.8147 0.0975 0.1576 0.9058 0.2785 0.9706 0.1270 0.5469 0.9572 0.9134 0.9575 0.4854 0.6324 0.9649 0.8003"

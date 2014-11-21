@@ -13,10 +13,16 @@ import numpy
 
 def gn_qua():
     return guassNewton(quadratic)
+def gn_exp():
+    return guassNewton(exponential)
+def gn_log():
+    return guassNewton(logarithmic)
+def gn_rat():
+    return guassNewton(rational)
 
 def guassNewton(f):
-    filePath = input("Please tpye the path of your file (ex C:\\Users\\Ikenna\\Desktop\\file.txt): ")
-    file = open("test_case_qua.txt")
+    filePath = input("Please type the path of your file (ex C:\\Users\\Ikenna\\Desktop\\file.txt): ")
+    file = open(filePath)
 
     floatingPair = []
     for item in file.readlines():
@@ -30,7 +36,7 @@ def guassNewton(f):
 
     iterations = int(input("How many iterations? "))
 
-    B = matrix([[a,b,c]]).T #Laxy raw to make 3x1
+    B = matrix([[a,b,c]]).T #Lazy raw to make 3x1
     r = []
 
     for pair in floatingPair:
@@ -52,7 +58,7 @@ def guassNewton(f):
     for i in range(iterations):
         #B = B - (inverse((J.T*J)) * J.T) * matrix(r)
         Q,R = qr_fact_givens(J)
-        B = B - (R.I*Q.T)*matrix(r)
+        B = B - (inverse(R[:R.shape[1],:])*Q[:,:R.shape[1]].T)*matrix(r)
         r = []
 
         for pair in floatingPair:
@@ -91,6 +97,45 @@ def quadratic(aMatrix,x,var): #matrix should be 3x1
     if(var == 2):
         return -1 * 1
     return a*x**2 + b*x + c
+
+def exponential(aMatrix, x, var):
+    a = numpy.array(aMatrix)[0][0]
+    b = numpy.array(aMatrix)[1][0]
+    c = numpy.array(aMatrix)[2][0]
+
+    if(var == 0):
+        return -1 * math.exp(b*x)
+    if(var == 1):
+        return -1 * a*x * math.exp(b*x)
+    if(var == 2):
+        return -1 * 1
+    return a*math.exp(b*x) + c
+
+def logarithmic(aMatrix, x, var):
+    a = numpy.array(aMatrix)[0][0]
+    b = numpy.array(aMatrix)[1][0]
+    c = numpy.array(aMatrix)[2][0]
+
+    if(var == 0):
+        return -1 * math.log(x + b)
+    if(var == 1):
+        return -1 * (a/(x+b))
+    if(var == 2):
+        return -1 * 1
+    return a*math.log(x+b) + c
+
+def rational(aMatrix, x, var):
+    a = numpy.array(aMatrix)[0][0]
+    b = numpy.array(aMatrix)[1][0]
+    c = numpy.array(aMatrix)[2][0]
+
+    if(var == 0):
+        return -1 * x / (x+b)
+    if(var == 1):
+        return -1 * (-a*x)/((x+b)**2)
+    if(var == 2):
+        return -1 * 1
+    return (a*x/(x+b)) + c
 
 def determinant(matrix):
     if(matrix.shape == (2,2)):
@@ -236,7 +281,6 @@ def qr_fact_househ(aMatrix):
     Q = numpy.identity(X.shape[0])
 
     for i in rotations:
-        print(i)
         Q = Q * i.T
         
     return Q, matrix(R).reshape(X.shape)

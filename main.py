@@ -1,5 +1,6 @@
 from numpy import matrix
 import math
+import random
 import numpy
 
 ### Tutorials I used to solidfy my knowledge on row-e: http://math.bu.edu/people/szczesny/Teaching/242S13/sec1_2ov.pdf
@@ -163,10 +164,7 @@ def getSubMatrix(aMatrix, column):
     return matrix(aList).reshape((aMatrix.shape[0] - 1, aMatrix.shape[0] - 1))
 
 def inverse(matrix):
-    if(matrix.shape[0] == matrix.shape[1]):
-        return gaussJordan(matrix)[:,3:]
-    else:
-        return matrix.T * gaussJordan(matrix*matrix.T)[:,3:]
+    return gaussJordan(matrix)[:,matrix.shape[0]:]
 
 def gaussJordan(aMatrix):
     array = numpy.array(aMatrix)
@@ -291,6 +289,47 @@ def magnitude(aMatrix): # 1x3 matrix
         magnitude = magnitude + float(i) ** 2
     return math.sqrt(magnitude)
         
+def power_method(A, v, tolerance, N):
+    y = matrix(v)
+    x = [v]
+    eigenvalue = 0
+    
+    for i in range(1,N+1):
+        x.append((A**(i)) * v)
+
+        a = numpy.array(v.T).tolist()[0]
+        b = numpy.array(x[i].T).tolist()[0]
+        c = numpy.array(x[i-1].T).tolist()[0]
+        eigenvalue = numpy.dot(a,b) / numpy.dot(a,c)
+
+        if(i > 0):
+            a = numpy.array(v.T).tolist()[0]
+            b = numpy.array(x[i].T).tolist()[0]
+            c = numpy.array(x[i-1].T).tolist()[0]
+            d = numpy.array(x[i-2].T).tolist()[0]
+
+            if abs((numpy.dot(a,b) / numpy.dot(a,c)) - (numpy.dot(a,c) / numpy.dot(a,d))) <= tolerance:
+                print("Eigenvector:\t\n", x[i]/magnitude(x[i].T))
+                print("\n\n")
+                print("Eigenvalue:\t", eigenvalue)
+                print("Iterations\t", i)
+                return
+                
+    print(None)
+
+def matrixGen(N):
+    
+    for i in range(N):
+        aMatrix = matrix([[random.uniform(-2,2), random.uniform(-2,2)], [random.uniform(-2,2),random.uniform(-2,2)]])
+        
+        while True:
+            try:
+                inverse(aMatrix)
+                power_method(aMatrix, aMatrix[:,0], 5 * 10**-5, 100)
+                power_method(inverse(aMatrix), inverse(aMatrix)[:,0], 5 * 10**-5, 100)
+                break
+            except:
+                aMatrix = matrix([[random.uniform(-2,2), random.uniform(-2,2)], [random.uniform(-2,2),random.uniform(-2,2)]])
 
 def a():
     a = "0.8147 0.0975 0.1576 0.9058 0.2785 0.9706 0.1270 0.5469 0.9572 0.9134 0.9575 0.4854 0.6324 0.9649 0.8003"

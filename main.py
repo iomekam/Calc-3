@@ -154,6 +154,14 @@ def determinant(matrix):
             totalSum = totalSum + sign * det
             sign = sign * -1
         return totalSum
+    
+def trace(aMatrix):
+    column = 0;
+    trace = 0
+    for i in numpy.array(aMatrix).tolist():
+        trace = trace + i[column]
+        column = column + 1
+    return trace
 
 def getSubMatrix(aMatrix, column):
     aList = []
@@ -313,23 +321,27 @@ def power_method(A, v, tolerance, N):
                 print("\n\n")
                 print("Eigenvalue:\t", eigenvalue)
                 print("Iterations\t", i)
-                return
+                return i
                 
     print(None)
 
 def matrixGen(N):
-    
+    tupList = []
     for i in range(N):
         aMatrix = matrix([[random.uniform(-2,2), random.uniform(-2,2)], [random.uniform(-2,2),random.uniform(-2,2)]])
         
         while True:
             try:
                 inverse(aMatrix)
-                power_method(aMatrix, aMatrix[:,0], 5 * 10**-5, 100)
-                power_method(inverse(aMatrix), inverse(aMatrix)[:,0], 5 * 10**-5, 100)
+                a = power_method(aMatrix, aMatrix[:,0], 5 * 10**-5, 100)
+                b = power_method(inverse(aMatrix), (aMatrix)[:,0], 5 * 10**-5, 100)
+                stats = determinant(aMatrix), trace(aMatrix), a
+                statsB = determinant(inverse(aMatrix)), trace(inverse(aMatrix)), b
+                tupList.append((stats, statsB))
                 break
             except:
                 aMatrix = matrix([[random.uniform(-2,2), random.uniform(-2,2)], [random.uniform(-2,2),random.uniform(-2,2)]])
+    return tupList
 
 def a():
     a = "0.8147 0.0975 0.1576 0.9058 0.2785 0.9706 0.1270 0.5469 0.9572 0.9134 0.9575 0.4854 0.6324 0.9649 0.8003"

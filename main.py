@@ -4,6 +4,9 @@ import math
 import random
 import numpy
 import os
+from matplotlib import pyplot
+import pylab
+from mpl_toolkits.mplot3d import Axes3D
 
 ### Tutorials I used to solidfy my knowledge on row-e: http://math.bu.edu/people/szczesny/Teaching/242S13/sec1_2ov.pdf
 ## Givens rotation help:
@@ -326,6 +329,7 @@ def power_method(A, v, tolerance, N):
                 return i
                 
     print(None)
+    return 0
 
 def matrixGen(N):
     tupList = []
@@ -343,61 +347,108 @@ def matrixGen(N):
                 break
             except:
                 aMatrix = matrix([[random.uniform(-2,2), random.uniform(-2,2)], [random.uniform(-2,2),random.uniform(-2,2)]])
-    return tupList
+    x = []
+    y = []
+    colors = []
+
+    for item in tupList:
+        x.append(item[0][0])
+        y.append(item[0][1])
+        colors.append(item[0][2])
+        
+    plotScatter(x,y,colors, "A", "Determinant of A", "Trace of A", "A.png")
+
+    x = []
+    y = []
+    colors = []
+
+    for item in tupList:
+        x.append(item[1][0])
+        y.append(item[1][1])
+        colors.append(item[1][2])
+    
+    plotScatter(x,y,colors, "A^-1", "Determinant of A^-1", "Trace of A^-1", "A inverse.png")
 
 def rotateLetters():
-    K = matrix([[0,0,0],[4,0,0],[4,2,0],[2,2,0],[2,6,0],[0,6,0]])
-    E = matrix([[0,0,0],[4,0,0],[4,2,0],[2,2,0],[2,6,0],[0,6,0]])
-    L = matrix([[0,0,0],[4,0,0],[4,2,0],[2,2,0],[2,6,0],[0,6,0]])
+    K = matrix([[0,0,0],[0,5,0],[1,5,0],[1,3,0],[2,5,0],[3,5,0],[2,3,0],[3,0,0],[2,0,0],[1,2,0],[1,0,0],[0,0,0]])
+    E = matrix([[0,0,0],[0,5,0],[3,5,0],[3,4,0],[1,4,0],[1,3,0],[3,3,0],[3,2,0],[1,2,0],[1,1,0],[3,1,0],[3,0,0],[0,0,0]])
+    L = matrix([[0,0,0],[0,4,0],[2,4,0],[2,2,0],[4,2,0],[4,0,0],[0,0,0]])
     totalFrames = 121
     iterations = totalFrames//3
 
-    directory = os.getcwd() + os.sep + "animations"
-
+    dataDirectory = os.getcwd() + os.sep + "animations\data"
+    imageDirectory = os.getcwd() + os.sep + "animations\images"
     count = 0
 
     K = translate(K, matrix(findCenter(L) + [1]).T)
     E = translate(E, matrix(findCenter(L) + [1]).T)
     L = translate(L, matrix(findCenter(L) + [1]).T)
-
-    if not os.path.exists(directory):
-        os.makedirs(directory)
     
-    for i in range(0, iterations):
-        if(i > 0):
-            K = rotate(K.T, (6 * math.pi) / iterations, 0)
-            E = rotate(E.T, (2 * math.pi) / iterations, 0)
-            L = rotate(L.T, (10 * math.pi) / iterations, 0)
 
-        formattedListK = []
-        formattedListE = []
+    if not os.path.exists(dataDirectory):
+        os.makedirs(dataDirectory)
+
+    if not os.path.exists(imageDirectory):
+        os.makedirs(imageDirectory)
+    
+    for i in range(iterations+1):
+        if(i > 0):
+            K = rotate(K.T, (6 * math.pi) / (iterations-1), 0)
+            E = rotate(E.T, (4 * math.pi) / (iterations-1), 1)
+            L = rotate(L.T, (10 * math.pi) / (iterations), 2)
+
+        lFile = open(dataDirectory + os.sep + str(80 + count) + ".txt", "w")
         formattedListL = []
 
-        for i in K.tolist():
-            subList = []
-            for j in i:
-                subList.append(float(Decimal(j).quantize(Decimal('.00001'))))
-            formattedListK.append(subList)
-
-        for i in E.tolist():
-            subList = []
-            for j in i:
-                subList.append(float(Decimal(j).quantize(Decimal('.00001'))))
-            formattedListE.append(subList)
-
-        for i in L.tolist():
-            subList = []
-            for j in i:
-                subList.append(float(Decimal(j).quantize(Decimal('.00001'))))
-            formattedListL.append(subList)
-
-        kFile = open(directory + os.sep + str(count) + ".txt", "w")
-        eFile = open(directory + os.sep + str(40 + count) + ".txt", "w")
-        lFile = open(directory + os.sep + str(80 + count) + ".txt", "w")
-
-        kFile.write(str(matrix(formattedListK)))
-        eFile.write(str(matrix(formattedListE)))
+        for j in L.tolist():
+                subList = []
+                for k in j:
+                    subList.append(float(Decimal(k).quantize(Decimal('.00001'))))
+                formattedListL.append(subList)
+                
         lFile.write(str(matrix(formattedListL)))
+
+        if(i < iterations):
+
+            formattedListK = []
+            formattedListE = []
+
+            for i in K.tolist():
+                subList = []
+                for j in i:
+                    subList.append(float(Decimal(j).quantize(Decimal('.00001'))))
+                formattedListK.append(subList)
+
+            for i in E.tolist():
+                subList = []
+                for j in i:
+                    subList.append(float(Decimal(j).quantize(Decimal('.00001'))))
+                formattedListE.append(subList)
+
+
+            kFile = open(dataDirectory + os.sep + str(count) + ".txt", "w")
+            eFile = open(dataDirectory + os.sep + str(40 + count) + ".txt", "w")
+            
+
+            kFile.write(str(matrix(formattedListK)))
+            eFile.write(str(matrix(formattedListE)))
+
+            plot(
+                matrix(formattedListK)[:,0].T.tolist()[0],
+                matrix(formattedListK)[:,1].T.tolist()[0],
+                matrix(formattedListK)[:,2].T.tolist()[0],
+                imageDirectory + os.sep + str(count) + ".png")
+            plot(
+                matrix(formattedListE)[:,0].T.tolist()[0],
+                matrix(formattedListE)[:,1].T.tolist()[0],
+                matrix(formattedListE)[:,2].T.tolist()[0],
+                imageDirectory + os.sep + str(40+count) + ".png")
+        plot(
+            matrix(formattedListL)[:,0].T.tolist()[0],
+            matrix(formattedListL)[:,1].T.tolist()[0],
+            matrix(formattedListL)[:,2].T.tolist()[0],
+            imageDirectory + os.sep + str(80+count) + ".png")
+
 
         count = count + 1
         kFile.close()
@@ -440,6 +491,37 @@ def findCenter(aMatrix):
     maxZ = max(aMatrix[:,2].T.tolist()[0])
 
     return [-maxX/2,-maxY/2,-maxZ/2]
+
+def plot(x,y,z, filename):
+    fig = pylab.figure()
+    ax = Axes3D(fig)
+    ax.set_xlim3d([0, 15])
+    ax.set_ylim3d([0, 15])
+    ax.set_zlim3d([0, 15])
+    ax.set_autoscale_on(False)
+    ax.set_xlabel("X",fontsize=12)
+    ax.set_ylabel("Y",fontsize=12)
+    ax.set_zlabel("Z",fontsize=12)
+
+    ax.plot3D(y, z, x)
+    pylab.savefig(filename)
+    pylab.close(fig)
+
+def plotScatter(x,y, colors, title, xlabel, ylabel, filename):
+    fig = pylab.figure()
+
+    ax = fig.add_subplot(111)
+    ax.set_title(title,fontsize=14)
+    ax.set_xlabel(xlabel,fontsize=12)
+    ax.set_ylabel(ylabel,fontsize=12)
+    ax.grid(True,linestyle='-',color='0.75')
+    ax.set_xlim([-10,10])
+    ax.set_ylim([-10,10])
+    
+    ax.scatter(x,y, c=colors, alpha=.5)
+
+    pylab.savefig(filename)
+    pylab.close(fig)
 
 def a():
     a = "0.8147 0.0975 0.1576 0.9058 0.2785 0.9706 0.1270 0.5469 0.9572 0.9134 0.9575 0.4854 0.6324 0.9649 0.8003"

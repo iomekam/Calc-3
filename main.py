@@ -1,7 +1,9 @@
 from numpy import matrix
+from decimal import Decimal
 import math
 import random
 import numpy
+import os
 
 ### Tutorials I used to solidfy my knowledge on row-e: http://math.bu.edu/people/szczesny/Teaching/242S13/sec1_2ov.pdf
 ## Givens rotation help:
@@ -342,6 +344,102 @@ def matrixGen(N):
             except:
                 aMatrix = matrix([[random.uniform(-2,2), random.uniform(-2,2)], [random.uniform(-2,2),random.uniform(-2,2)]])
     return tupList
+
+def rotateLetters():
+    K = matrix([[0,0,0],[4,0,0],[4,2,0],[2,2,0],[2,6,0],[0,6,0]])
+    E = matrix([[0,0,0],[4,0,0],[4,2,0],[2,2,0],[2,6,0],[0,6,0]])
+    L = matrix([[0,0,0],[4,0,0],[4,2,0],[2,2,0],[2,6,0],[0,6,0]])
+    totalFrames = 121
+    iterations = totalFrames//3
+
+    directory = os.getcwd() + os.sep + "animations"
+
+    count = 0
+
+    K = translate(K, matrix(findCenter(L) + [1]).T)
+    E = translate(E, matrix(findCenter(L) + [1]).T)
+    L = translate(L, matrix(findCenter(L) + [1]).T)
+
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    
+    for i in range(0, iterations):
+        if(i > 0):
+            K = rotate(K.T, (6 * math.pi) / iterations, 0)
+            E = rotate(E.T, (2 * math.pi) / iterations, 0)
+            L = rotate(L.T, (10 * math.pi) / iterations, 0)
+
+        formattedListK = []
+        formattedListE = []
+        formattedListL = []
+
+        for i in K.tolist():
+            subList = []
+            for j in i:
+                subList.append(float(Decimal(j).quantize(Decimal('.00001'))))
+            formattedListK.append(subList)
+
+        for i in E.tolist():
+            subList = []
+            for j in i:
+                subList.append(float(Decimal(j).quantize(Decimal('.00001'))))
+            formattedListE.append(subList)
+
+        for i in L.tolist():
+            subList = []
+            for j in i:
+                subList.append(float(Decimal(j).quantize(Decimal('.00001'))))
+            formattedListL.append(subList)
+
+        kFile = open(directory + os.sep + str(count) + ".txt", "w")
+        eFile = open(directory + os.sep + str(40 + count) + ".txt", "w")
+        lFile = open(directory + os.sep + str(80 + count) + ".txt", "w")
+
+        kFile.write(str(matrix(formattedListK)))
+        eFile.write(str(matrix(formattedListE)))
+        lFile.write(str(matrix(formattedListL)))
+
+        count = count + 1
+        kFile.close()
+        eFile.close()
+        lFile.close()
+        
+
+def rotate(aMatrix, rotationFactor, axis):
+    if(axis == 0):    
+        rotation = matrix([[1,0,0],[0,math.cos(rotationFactor), -math.sin(rotationFactor)], [0, math.sin(rotationFactor), math.cos(rotationFactor)]])
+    if(axis == 1):
+        rotation = matrix([[math.cos(rotationFactor), 0, math.sin(rotationFactor)], [0, 1, 0], [-math.sin(rotationFactor), 0, math.cos(rotationFactor)]])
+    if(axis == 2):
+        rotation = matrix([[math.cos(rotationFactor), -math.sin(rotationFactor), 0], [math.sin(rotationFactor), math.cos(rotationFactor), 0], [0,0,1]])
+        
+    aMatrix = (rotation * aMatrix).T
+    return aMatrix
+
+def translate(aMatrix, point):
+    aList = []
+    for i in aMatrix.tolist():
+        trans = matrix([
+                [1,0,0,i[0]],
+                [0,1,0,i[1]],
+                [0,0,1,i[2]],
+                [0,0,0,1]
+            ])
+        aList.append((trans * point).T.tolist()[0])
+
+    aMatrix = matrix(aList)[:aMatrix.shape[0],:3]
+    R = []
+    for i in aMatrix.tolist():
+        for j in i:
+            R.append(float(Decimal(j).quantize(Decimal('.00001'))))
+
+    return matrix(R).reshape(aMatrix.shape)
+def findCenter(aMatrix):
+    maxX = max(aMatrix[:,0].T.tolist()[0])
+    maxY = max(aMatrix[:,1].T.tolist()[0])
+    maxZ = max(aMatrix[:,2].T.tolist()[0])
+
+    return [-maxX/2,-maxY/2,-maxZ/2]
 
 def a():
     a = "0.8147 0.0975 0.1576 0.9058 0.2785 0.9706 0.1270 0.5469 0.9572 0.9134 0.9575 0.4854 0.6324 0.9649 0.8003"

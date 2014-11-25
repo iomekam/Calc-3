@@ -373,16 +373,15 @@ def rotateLetters():
     K = matrix([[0,0,0],[0,5,0],[1,5,0],[1,3,0],[2,5,0],[3,5,0],[2,3,0],[3,0,0],[2,0,0],[1,2,0],[1,0,0],[0,0,0]])
     E = matrix([[0,0,0],[0,5,0],[3,5,0],[3,4,0],[1,4,0],[1,3,0],[3,3,0],[3,2,0],[1,2,0],[1,1,0],[3,1,0],[3,0,0],[0,0,0]])
     L = matrix([[0,0,0],[0,4,0],[2,4,0],[2,2,0],[4,2,0],[4,0,0],[0,0,0]])
-    totalFrames = 121
-    iterations = totalFrames//3
+    iterations = 121
 
     dataDirectory = os.getcwd() + os.sep + "animations\data"
     imageDirectory = os.getcwd() + os.sep + "animations\images"
     count = 0
 
-    K = translate(K, matrix(findCenter(L) + [1]).T)
-    E = translate(E, matrix(findCenter(L) + [1]).T)
-    L = translate(L, matrix(findCenter(L) + [1]).T)
+    K = translate(K, matrix(findCenter(K) + [1]).T)
+    E = translate(E, matrix(findCenter(E) + [1]).T + matrix([14,0,0,0]).T)
+    L = translate(L, matrix(findCenter(L) + [1]).T + matrix([28,0,0,0]).T)
     
 
     if not os.path.exists(dataDirectory):
@@ -392,68 +391,58 @@ def rotateLetters():
         os.makedirs(imageDirectory)
     
     for i in range(iterations+1):
+        E = translate(E, matrix(findCenter(E) + [1]).T)
+        L = translate(L, matrix(findCenter(L) + [1]).T)
+        
         if(i > 0):
             K = rotate(K.T, (6 * math.pi) / (iterations-1), 0)
+            
+            E = translate(E, matrix(findCenter(E) + [1]).T)
             E = rotate(E.T, (4 * math.pi) / (iterations-1), 1)
-            L = rotate(L.T, (10 * math.pi) / (iterations), 2)
+            E = translate(E, matrix(findCenter(E) + [1]).T + matrix([7,0,0,0]).T)
 
-        lFile = open(dataDirectory + os.sep + str(80 + count) + ".txt", "w")
+            L = translate(L, matrix(findCenter(L) + [1]).T)
+            L = rotate(L.T, (10 * math.pi) / (iterations-1), 2)
+            L = translate(L, matrix(findCenter(L) + [1]).T + matrix([14,0,0,0]).T)            
+            
+        f = open(dataDirectory + os.sep + str(count) + ".txt", "w")
+        
         formattedListL = []
+        formattedListK = []
+        formattedListE = []
 
         for j in L.tolist():
                 subList = []
                 for k in j:
                     subList.append(float(Decimal(k).quantize(Decimal('.00001'))))
                 formattedListL.append(subList)
-                
-        lFile.write(str(matrix(formattedListL)))
 
-        if(i < iterations):
+        for i in K.tolist():
+            subList = []
+            for j in i:
+                subList.append(float(Decimal(j).quantize(Decimal('.00001'))))
+            formattedListK.append(subList)
 
-            formattedListK = []
-            formattedListE = []
+        for i in E.tolist():
+            subList = []
+            for j in i:
+                subList.append(float(Decimal(j).quantize(Decimal('.00001'))))
+            formattedListE.append(subList)
 
-            for i in K.tolist():
-                subList = []
-                for j in i:
-                    subList.append(float(Decimal(j).quantize(Decimal('.00001'))))
-                formattedListK.append(subList)
-
-            for i in E.tolist():
-                subList = []
-                for j in i:
-                    subList.append(float(Decimal(j).quantize(Decimal('.00001'))))
-                formattedListE.append(subList)
+        f.write("K = " + str(matrix(formattedListK)) + "\n\n")
+        f.write("E = " + str(matrix(formattedListE)) + "\n\n")
+        f.write("L = " + str(matrix(formattedListL)))
 
 
-            kFile = open(dataDirectory + os.sep + str(count) + ".txt", "w")
-            eFile = open(dataDirectory + os.sep + str(40 + count) + ".txt", "w")
-            
-
-            kFile.write(str(matrix(formattedListK)))
-            eFile.write(str(matrix(formattedListE)))
-
-            plot(
-                matrix(formattedListK)[:,0].T.tolist()[0],
-                matrix(formattedListK)[:,1].T.tolist()[0],
-                matrix(formattedListK)[:,2].T.tolist()[0],
-                imageDirectory + os.sep + str(count) + ".png")
-            plot(
-                matrix(formattedListE)[:,0].T.tolist()[0],
-                matrix(formattedListE)[:,1].T.tolist()[0],
-                matrix(formattedListE)[:,2].T.tolist()[0],
-                imageDirectory + os.sep + str(40+count) + ".png")
         plot(
-            matrix(formattedListL)[:,0].T.tolist()[0],
-            matrix(formattedListL)[:,1].T.tolist()[0],
-            matrix(formattedListL)[:,2].T.tolist()[0],
-            imageDirectory + os.sep + str(80+count) + ".png")
+            [matrix(formattedListK)[:,0].T.tolist()[0], matrix(formattedListE)[:,0].T.tolist()[0], matrix(formattedListL)[:,0].T.tolist()[0]],
+            [matrix(formattedListK)[:,1].T.tolist()[0],matrix(formattedListE)[:,1].T.tolist()[0],matrix(formattedListL)[:,1].T.tolist()[0]],
+            [matrix(formattedListK)[:,2].T.tolist()[0],matrix(formattedListE)[:,2].T.tolist()[0],matrix(formattedListL)[:,2].T.tolist()[0]],
+            imageDirectory + os.sep + str(count) + ".png")
 
 
         count = count + 1
-        kFile.close()
-        eFile.close()
-        lFile.close()
+        f.close()
         
 
 def rotate(aMatrix, rotationFactor, axis):
@@ -503,7 +492,9 @@ def plot(x,y,z, filename):
     ax.set_ylabel("Y",fontsize=12)
     ax.set_zlabel("Z",fontsize=12)
 
-    ax.plot3D(y, z, x)
+    ax.plot3D(x[0], y[0], z[0])
+    ax.plot3D(x[1], y[1], z[1])
+    ax.plot3D(x[2], y[2], z[2])
     pylab.savefig(filename)
     pylab.close(fig)
 

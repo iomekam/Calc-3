@@ -390,7 +390,7 @@ def rotateLetters():
     if not os.path.exists(imageDirectory):
         os.makedirs(imageDirectory)
     
-    for i in range(iterations+1):
+    for i in range(iterations):
         E = translate(E, matrix(findCenter(E) + [1]).T)
         L = translate(L, matrix(findCenter(L) + [1]).T)
         
